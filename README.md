@@ -1,4 +1,4 @@
-# Maze Navigation Robot – Programming for Robotics Project
+# Programming for Robotics Project
 
 ## Project Overview
 
@@ -24,7 +24,6 @@ This repository is organized to separate **code, simulation worlds, reports, vid
 ### **Folder Details**
 
 - **`controllers/`**
-
   - Contains all robot control code.
   - Expected files:
     - `main_controller.py` → Main FSM, sensor integration, and movement logic
@@ -33,29 +32,24 @@ This repository is organized to separate **code, simulation worlds, reports, vid
     - Other modules as needed
 
 - **`worlds/`**
-
   - Contains all Webots simulation worlds (.wbt) used for testing.
   - Example: `maze_world.wbt`
 
 - **`report/`**
-
   - `pitch_document.docx` → Project proposal submitted in Week 6
   - `project_report.docx` → Final report submitted in Week 12
 
 - **`video/`**
-
   - Screen-recorded demonstration of the robot navigating the maze
   - Example: `maze_demo.mp4`
 
 - **`diagrams/`**
-
   - Visual aids for the project
   - Example files:
     - `fsm_diagram.png`
     - `system_architecture.png`
 
 - **`README.md`**
-
   - This file, giving an overview of the project and instructions for team members and markers
 
 - **`.gitignore`**

@@ -7,7 +7,7 @@ It includes the maze layout, obstacles, and any assets used for the robot simula
 
 ## File Overview
 
-### 1. `maze_world.wbt`
+### 1. `world.wbt`
 
 - **Purpose:** Main maze environment where the robot navigates.
 - Defines walls, floor, robot starting position, and obstacles.
@@ -23,7 +23,7 @@ It includes the maze layout, obstacles, and any assets used for the robot simula
 - **Purpose:** Custom robot definition for the simulation.
 - Includes robot dimensions, sensors, actuators, and appearance.
 
-### 4. assets
+### 4. `assets`
 
 - **Purpose:** Stores visual textures used in the world files, such as:
   - `hedge_wall.png` → wall appearance, 64x64 px (https://www.manytextures.com/texture/70/hedge-wall/)

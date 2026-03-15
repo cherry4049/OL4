@@ -1,0 +1,53 @@
+# ==========================
+# Python cache files
+# ==========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ==========================
+# VS Code settings
+# ==========================
+.vscode/
+*.code-workspace
+
+# ==========================
+# Webots temporary / backup files
+# ==========================
+*.log
+*.tmp
+*.backup
+*.wbo
+*.wbproj.user
+
+# ==========================
+# OS-generated files
+# ==========================
+.DS_Store
+Thumbs.db
+
+# ==========================
+# Report temporary files
+# ==========================
+report/*.tmp
+report/*.bak
+
+# ==========================
+# Diagram temp files
+# ==========================
+diagrams/*.tmp
+diagrams/*.bak
+
+# ==========================
+# Worlds assets that are large or temporary
+# ==========================
+worlds/assets/*.tmp
+worlds/assets/*.bak
+worlds/assets/*.blend    # if using Blender to create objects
+worlds/assets/*.psd      # if using Photoshop textures
+
+# ==========================
+# Misc / environment
+# ==========================
+.env
