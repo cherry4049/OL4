@@ -41,7 +41,7 @@ Each file has a specific purpose related to the robot’s behaviour, sensors, an
   - `feature/fsm` → `main_controller.py`
   - `feature/sensors` → `sensors.py`
   - `feature/movement` → `movement.py`
-  - `feature/world` → `worlds/maze_world.wbt`
+  - `feature/world` → `worlds/world.wbt`
 - Placeholders are included for each file to allow GitHub to display the folder structure.
 
 ---
