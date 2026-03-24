@@ -7,7 +7,7 @@ The goal is to demonstrate autonomous navigation, obstacle avoidance, exit detec
 
 **Group Members:**
 
-- Jenjira Kongpong,
+- Jenjira Kongpong s5393441,
 - Xinghan TAi,
 - Yuehui Chen, S5361257
 
