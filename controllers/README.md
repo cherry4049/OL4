@@ -12,16 +12,17 @@ All controller implementation files are located inside the `main_controller/` su
 
 ## 📁 Folder Structure
 
-controllers/
-├── README.md
-└── main_controller/
-├── main_controller.py
-├── fsm.py
-├── navigation.py
-├── movement.py
-├── sensors.py
-├── config.py
-└── utils.py
+**controllers/:**
+
+- README.md
+- **main_controller/:**
+  - main_controller.py
+  - fsm.py
+  - navigation.py
+  - movement.py
+  - sensors.py
+  - config.py
+  - utils.py
 
 ---
 
