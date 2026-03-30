@@ -1,0 +1,8 @@
+# TODO: tune these during testing
+
+FRONT_THRESHOLD = 0.5
+LEFT_THRESHOLD = 0.3
+RIGHT_THRESHOLD = 0.3
+
+FORWARD_SPEED = 6.0
+TURN_SPEED = 3.0
