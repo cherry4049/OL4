@@ -18,8 +18,16 @@ __pycache__/
 *.log
 *.tmp
 *.backup
-*.wbo
-*.wbproj.user
+*~                 # common editor backup files
+*.wbproj
+cache/             # Webots cache folder
+
+# ==========================
+# Compiled Webots controllers
+# ==========================
+controllers/*/build/
+controllers/*/*.exe
+controllers/*/*.dSYM/   # macOS debug symbols
 
 # ==========================
 # OS-generated files
