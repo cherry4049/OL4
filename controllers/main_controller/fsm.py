@@ -1,3 +1,5 @@
+from config import FRONT_THRESHOLD, LEFT_THRESHOLD, RIGHT_THRESHOLD
+
 class FSM:
     def __init__(self):
         # Initial state
@@ -8,24 +10,29 @@ class FSM:
         Update state based on sensor input
         sensor_data: dict with keys 'front', 'left', 'right'
         """
-
         front = sensor_data.get("front", 0)
         left = sensor_data.get("left", 0)
         right = sensor_data.get("right", 0)
 
-        # TODO: replace thresholds with values from config.py later
-        FRONT_THRESHOLD = 80
-        SIDE_THRESHOLD = 80
+        # Stop condition
+        if front >200 and left > 150 and right > 150:
+            self.state = "STOP"
 
-        # Simple wall-following logic
-        if front > FRONT_THRESHOLD:
+        # Obstacle ahead
+        elif front > FRONT_THRESHOLD:
             self.state = "TURN_LEFT"
-        elif left < SIDE_THRESHOLD:
+        
+        # No wall on left -> go find wall
+        elif left < LEFT_THRESHOLD:
             self.state = "TURN_LEFT"
-        elif front < FRONT_THRESHOLD:
-            self.state = "MOVE_FORWARD"
-        else:
+
+        # No wall on right -> adjust
+        elif right < RIGHT_THRESHOLD:
             self.state = "TURN_RIGHT"
+
+        # otherwise go forward
+        else:
+            self.state = "MOVE_FORWARD"
 
     def get_action(self):
         """
