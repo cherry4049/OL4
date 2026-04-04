@@ -1,110 +1,86 @@
-# movement.py
-# Branch: feature/movement
+# test_movement.py
+
 
 from controller import Robot
+from movement import move_forward, turn_left, turn_right, stop
 
 # ----------------------------
 # Configuration
 # ----------------------------
-TIME_STEP = 64        # Simulation step time in milliseconds 
-MAX_SPEED = 6.28      # Maximum wheel speed in radians per second
+TIME_STEP = 64   # Webots simulation step in ms
 
 # ----------------------------
-# Robot Initialisation
+# Initialize Robot
 # ----------------------------
-robot = Robot()  # For controlling the e-puck robot in Webots
+robot = Robot()
 
-# Get wheel motors
-left_motor = robot.getDevice('left wheel motor')
-right_motor = robot.getDevice('right wheel motor')
+#Get wheel motors
+left_motor = robot.getDevice("left wheel motor")
+right_motor = robot.getDevice("right wheel motor")
 
-# Set motors to velocity control mode (continuous rotation)
+# Set motors to velocity control mode
 left_motor.setPosition(float('inf'))
 right_motor.setPosition(float('inf'))
 
-# Start stopped
-left_motor.setVelocity(0.0)
-right_motor.setVelocity(0.0)
-
 # ----------------------------
-# Movement Functions
+# Detailed step-by-step movement test
 # ----------------------------
-def move_forward(speed=MAX_SPEED):
-    """Move both wheels forward at the given speed."""
-    left_motor.setVelocity(speed)
-    right_motor.setVelocity(speed)
-
-def turn_left(speed=MAX_SPEED):
-    """Rotate robot left in place: left wheel backward, right wheel forward."""
-    left_motor.setVelocity(-speed)
-    right_motor.setVelocity(speed)
-
-def turn_right(speed=MAX_SPEED):
-    """Rotate robot right in place: left wheel forward, right wheel backward."""
-    left_motor.setVelocity(speed)
-    right_motor.setVelocity(-speed)
-
-def stop():
-    """Stop both wheels immediately (idle or emergency stop)."""
-    left_motor.setVelocity(0.0)
-    right_motor.setVelocity(0.0)
-
-# ----------------------------
-# for testing movement.py only
-# ----------------------------
-if __name__ == "__main__":
+def movement_test():
     print("Starting e-puck movement test...")
 
     # ------------------------
     # 1. MOVE FORWARD
     # ------------------------
     print("Step 1: Moving forward")
-    move_forward(3.0)  # Move at half max speed
-    for _ in range(40):  # Run for 40 simulation steps ( around 2.5 sec)
-        robot.step(TIME_STEP)
+    move_forward(left_motor, right_motor, 3.0) #move forward at half of the max speed
+    for _ in range(40): #run for 40 steps (around 2.5 seconds)
+        robot.step(TIME_STEP) #advance simulation by one time step
 
     # ------------------------
     # 2. TURN LEFT
     # ------------------------
-    print("Step 2: Turning left")
-    turn_left(2.0)  # Moderate speed turn
-    for _ in range(20):  # Run for 20 steps (around 1.3 sec)
-        robot.step(TIME_STEP)
+    print("Step 2: Turning left") 
+    turn_left(left_motor, right_motor, 1.5) #slightly slower turn speed for better control
+    for _ in range(18): #run for 18 steps
+        robot.step(TIME_STEP) #advance simulation
 
     # ------------------------
     # 3. RETURN TO FRONT (camera)
     # ------------------------
     print("Step 3: Returning to front")
-    turn_right(2.0)  # Start turning right
-    for step in range(20):  # Smoother motion
-        robot.step(TIME_STEP)
-
-        # Pause halfway
-        if step == 10:  # Halfway point
-            print("Pausing for 0.3 second")
-            stop()  # Temporarily stop robot
-
-            # 0.3 second ≈ 5 steps (300ms / 64ms)
-            for _ in range(5):
-                robot.step(TIME_STEP)
-
-            # Resume turning
-            turn_right(2.0)
+    for step in range(18): #18 steps for smoother rotation
+        turn_speed = 1.5 if step < 9 else 0.8 #slow down for smooth pause
+        turn_right(left_motor, right_motor, turn_speed) #apply right turn at the selected speed
+        robot.step(TIME_STEP) #advance simulation
+        
+        #pause halfway through the turn
+        if step == 9: #halfway point
+            print("Pausing for 0.3 sec")
+            turn_right(left_motor, right_motor, 0.3) #very slow turn
+            for _ in range(5): #around 0.3 seconds pasuse (5 steps)
+                robot.step(TIME_STEP) #keep simulation running
+            turn_right(left_motor, right_motor, 1.5) #resume normal turn speed
 
     # ------------------------
     # 4. TURN RIGHT
     # ------------------------
     print("Step 4: Turning right")
-    turn_right(2.0)  # Moderate speed turn
-    for _ in range(20):  # Run for 20 steps (around 1.3 sec)
-        robot.step(TIME_STEP)
- 
+    turn_right(left_motor, right_motor, 1.5) #moderatte speed turn
+    for _ in range(18): #run for 18 steps
+        robot.step(TIME_STEP) #advance simulation
+
     # ------------------------
     # 5. STOP
     # ------------------------
     print("Step 5: Stopping")
-    stop()  # Stop both wheels
-    for _ in range(10):  # Extra steps to ensure full stop
-        robot.step(TIME_STEP)
+    stop(left_motor, right_motor) #stop both wheels
+    for _ in range(10):  #extra steps to ensure that the e-puck fully stops
+        robot.step(TIME_STEP) #advance simulation
 
-    print("Testing Completed") #test completed 
+    print("Movement Test Completed.")
+
+# ----------------------------
+# Main
+# ----------------------------
+if __name__ == "__main__":
+    movement_test()
