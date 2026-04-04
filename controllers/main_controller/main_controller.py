@@ -1,6 +1,7 @@
 from controller import Robot
 from sensors import Sensors
 from fsm import FSM
+from config import FRONT_THRESHOLD, LEFT_THRESHOLD, RIGHT_THRESHOLD, FORWARD_SPEED
 import movement
 
 def main():
@@ -16,8 +17,12 @@ def main():
     #--------------
     ps = []
     for i in range(8):
-        ps.append(robot.getDevice(f"ps{i}"))
-        ps[i].enable(timestep)
+        sensor = robot.getDevice(f"ps{i}")
+        if sensor is not None:
+            sensor.enable(timestep)
+            ps.append(sensor)
+        else:
+            print(f"Warning: ps{i} not found")
     #-------------------------
 
     # Initialise modules
@@ -28,13 +33,13 @@ def main():
         # 1. Read sensor data
         sensor_data = sensors.read()
 
-        print(sensor_data) # log for debugging
+        print(fsm.state, sensor_data) # log for debugging
 
         # 2. Update FSM
         fsm.update(sensor_data)
 
         # 3. Get action from FSM
-        action = fsm.get_action()
+        action = fsm.get_action(sensor_data)
 
         # 4. Execute action
         if action == "MOVE_FORWARD":
