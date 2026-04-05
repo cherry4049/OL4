@@ -58,12 +58,21 @@ class FSM:
             # small difference filter to avoid noise
             diff = left - right
 
-            if diff > 5:
+            # Strong correction (too close to wall)
+
+            if diff > 10:
                 print("TURN RIGHT")
                 return "TURN_RIGHT"
-            elif diff < -5:
+            elif diff < -10:
                 print("TURN LEFT")
                 return "TURN_LEFT"
+            # Weak correction (small adjustment)
+            elif diff > 3:
+                return "SLIGHT_RIGHT"
+            elif diff < -3:
+                return "SLIGHT_LEFT"
+            
+            # Otherwise go straight
             else:
                 return "MOVE_FORWARD"
 

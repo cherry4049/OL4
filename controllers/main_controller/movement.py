@@ -12,6 +12,14 @@ def turn_right(left_motor, right_motor):
     left_motor.setVelocity(TURN_SPEED)
     right_motor.setVelocity(-TURN_SPEED)
 
+def slight_left(left_motor, right_motor):
+    left_motor.setVelocity(2.0)
+    right_motor.setVelocity(4.0)
+
+def slight_right(left_motor, right_motor):
+    left_motor.setVelocity(4.0)
+    right_motor.setVelocity(2.0)
+
 def stop(left_motor, right_motor):
     left_motor.setVelocity(0)
     right_motor.setVelocity(0)

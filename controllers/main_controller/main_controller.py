@@ -48,6 +48,10 @@ def main():
             movement.turn_left(left_motor, right_motor)
         elif action == "TURN_RIGHT":
             movement.turn_right(left_motor, right_motor)
+        elif action == "SLIGHT_LEFT":
+            movement.slight_left(left_motor, right_motor)
+        elif action == "SLIGHT_RIGHT":
+            movement.slight_right(left_motor, right_motor)
         else:
             movement.stop(left_motor, right_motor)
 
