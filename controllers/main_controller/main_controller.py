@@ -1,7 +1,6 @@
 from controller import Robot
 from sensors import Sensors
 from fsm import FSM
-from config import FRONT_THRESHOLD, LEFT_THRESHOLD, RIGHT_THRESHOLD, FORWARD_SPEED
 import movement
 
 def main():
@@ -52,6 +51,11 @@ def main():
             movement.slight_left(left_motor, right_motor)
         elif action == "SLIGHT_RIGHT":
             movement.slight_right(left_motor, right_motor)
+        elif action == "STOP":
+            movement.stop(left_motor, right_motor)
+        elif action == "GOAL_REACHED":
+            movement.stop(left_motor, right_motor)
+            break # stops the controller loop
         else:
             movement.stop(left_motor, right_motor)
 
