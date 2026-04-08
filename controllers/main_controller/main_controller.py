@@ -1,12 +1,19 @@
 from controller import Robot
 from sensors import Sensors
 from fsm import FSM
-from config import FRONT_THRESHOLD, LEFT_THRESHOLD, RIGHT_THRESHOLD, FORWARD_SPEED
 import movement
 
 def main():
     robot = Robot()
     timestep = int(robot.getBasicTimeStep())
+
+    camera = robot.getDevice("camera")
+    if camera is None:
+        print("NO CAMERA DEVICE IN RUNTIME")
+    else:
+        print("CAMERA EXISTS")
+    camera.enable(timestep)
+
     left_motor = robot.getDevice("left wheel motor")
     right_motor = robot.getDevice("right wheel motor")
 
@@ -27,19 +34,19 @@ def main():
 
     # Initialise modules
     sensors = Sensors(robot, ps)
-    fsm = FSM()
+    fsm = FSM(camera)
 
     while robot.step(timestep) != -1:
         # 1. Read sensor data
         sensor_data = sensors.read()
-
-        print(fsm.state, sensor_data) # log for debugging
 
         # 2. Update FSM
         fsm.update(sensor_data)
 
         # 3. Get action from FSM
         action = fsm.get_action(sensor_data)
+
+        print(f"{fsm.state} -> {action}", sensor_data) # log for debugging
 
         # 4. Execute action
         if action == "MOVE_FORWARD":
@@ -52,6 +59,11 @@ def main():
             movement.slight_left(left_motor, right_motor)
         elif action == "SLIGHT_RIGHT":
             movement.slight_right(left_motor, right_motor)
+        elif action == "STOP":
+            movement.stop(left_motor, right_motor)
+        elif action == "GOAL_REACHED":
+            movement.stop(left_motor, right_motor)
+            break # stops the controller loop
         else:
             movement.stop(left_motor, right_motor)
 
