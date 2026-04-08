@@ -11,6 +11,9 @@ class FSM:
         self.wall_counter = 0
         self.state_confirm_counter = 0
 
+        # Counter for goal detection
+        self.goal_counter = 0
+     
         # Last action for stuck detection / corridor stability
         self.last_action = "MOVE_FORWARD"
 
@@ -28,17 +31,52 @@ class FSM:
         width = self.camera.getWidth()
         height = self.camera.getHeight()
 
-        # check only center pixel
-        cx = width // 2
-        cy = height // 2
+        green_count = 0
+        total = 0
+
+        left_green = 0
+        right_green = 0
+
+        # center region scan (not full image)
+        for dx in range(-5, 6):
+            for dy in range(-4, 5):
+                cx = width // 2 + dx
+                cy = height // 2 + dy
     
-        r = self.camera.imageGetRed(image, width, cx, cy)
-        g = self.camera.imageGetGreen(image, width, cx, cy)
-        b = self.camera.imageGetBlue(image, width, cx, cy)
+                r = self.camera.imageGetRed(image, width, cx, cy)
+                g = self.camera.imageGetGreen(image, width, cx, cy)
+                b = self.camera.imageGetBlue(image, width, cx, cy)
+        
+                total += 1
 
-        if g > r + 20 and g > b + 20:
-            self.state = "GOAL_REACHED"
+                if g > r + 15 and g > b + 15:
+                    green_count += 1
+    
+        if total == 0:
+            return
+        
+        green_ratio = green_count / total
 
+        # Alignment error ( 0 = centered)
+        alignment_error = abs(left_green - right_green)
+
+        # ---------------------
+        # CONDITIONS
+        # ---------------------
+        CLOSE = green_ratio > 0.65
+        ALIGNED = alignment_error < 3
+
+        if CLOSE and ALIGNED:
+            self.goal_counter += 1
+        else:
+            self.goal_counter = 0
+
+        # -------------------------
+        # CONFIRM 1 SECOND
+        # -------------------------
+        if self.goal_counter >= GOAL_CONFIRM_TIME:
+            self.state = "GOAL_REACHED"       
+       
     # -------------------------
     # STATE UPDATE
     # -------------------------

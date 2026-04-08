@@ -19,3 +19,6 @@ WALL_DEADZONE = 5
 
 # Wall detection threshold
 WALL_THRESHOLD = 75
+
+# Goal detection time
+GOAL_CONFIRM_TIME = 110
