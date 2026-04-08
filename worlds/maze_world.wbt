@@ -43,7 +43,7 @@ DEF Starting_Point Wall {
   name "wall(74)"
   size 0.01 0.1 0.25
   appearance Roughcast {
-    colorOverride 0.666667 0 0
+    colorOverride 1 0 0
     textureTransform TextureTransform {
       scale 2.4 1
     }
@@ -84,6 +84,12 @@ Wall {
   rotation 0.9999999999862037 5.25285999992753e-06 -2.3974499999669238e-09 1.5708
   name "wall(33)"
   size 0.01 0.1 0.25
+  appearance Roughcast {
+    colorOverride 0 1 0
+    textureTransform TextureTransform {
+      scale 2.4 1
+    }
+  }
 }
 Wall {
   translation -0.248465 -0.246252 0.0500009
@@ -162,6 +168,12 @@ Wall {
   rotation 0.9999999999862037 5.25285999992753e-06 -2.3974499999669238e-09 1.5708
   name "wall(22)"
   size 0.01 0.1 0.25
+  appearance Roughcast {
+    colorOverride 0 1 0
+    textureTransform TextureTransform {
+      scale 2.4 1
+    }
+  }
 }
 Wall {
   translation -0.008465 0.00374875 0.0499992
@@ -240,6 +252,12 @@ Wall {
   rotation 0.9999999999871194 5.0755399999346245e-06 -2.397449999969119e-09 1.57079
   name "wall(36)"
   size 0.01 0.1 0.5
+  appearance Roughcast {
+    colorOverride 0 1 0
+    textureTransform TextureTransform {
+      scale 2.4 1
+    }
+  }
 }
 E-puck {
   hidden position_0_0 22.410205414280604

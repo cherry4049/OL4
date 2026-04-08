@@ -1,44 +1,64 @@
-from config import (
-    STUCK_LIMIT,
-    FRONT_AVOID_ON,
-    FRONT_AVOID_OFF,
-    WALL_DIFF_SMALL,
-    WALL_DIFF_STRONG,
-    STATE_CONFIRM_COUNT
-)
-
+from config import *
 
 class FSM:
-    def __init__(self):
+    def __init__(self, camera):
+        self.camera = camera
         self.state = "EXPLORE"
 
-        # Memory
-        self.last_action = "MOVE_FORWARD"
-        self.last_turn = None
-
-        # Counters
-        self.avoid_counter = 0
+        # Counters for stability
         self.stuck_counter = 0
+        self.avoid_counter = 0
         self.wall_counter = 0
-        self.straight_counter = 0
+        self.state_confirm_counter = 0
 
-        # Memory-lite (VERY IMPORTANT for loop prevention)
-        self.turn_memory = []
+        # Last action for stuck detection / corridor stability
+        self.last_action = "MOVE_FORWARD"
 
-        self.last_front = None
+        # Escape turn memory for AVOID
         self.escape_turn = "RIGHT"
 
-    # -----------------------
-    # STATE UPDATE
-    # -----------------------
-    def update(self, sensor_data):
-        front = sensor_data["front"]
-        left = sensor_data["left"]
-        right = sensor_data["right"]
+        # Light memory to prevent repeated turns
+        self.turn_memory = []
 
-        # -----------------------
-        # STUCK DETECTION
-        # -----------------------
+        # Last front sensor
+        self.last_front = None
+
+    def check_goal(self):
+        image = self.camera.getImage()
+        width = self.camera.getWidth()
+        height = self.camera.getHeight()
+
+        # check only center pixel
+        cx = width // 2
+        cy = height // 2
+    
+        r = self.camera.imageGetRed(image, width, cx, cy)
+        g = self.camera.imageGetGreen(image, width, cx, cy)
+        b = self.camera.imageGetBlue(image, width, cx, cy)
+
+        if g > r + 20 and g > b + 20:
+            self.state = "GOAL_REACHED"
+
+    # -------------------------
+    # STATE UPDATE
+    # -------------------------
+    def update(self, sensor):
+        front = sensor["front"]
+        left = sensor["left"]
+        right = sensor["right"]
+
+        diff = left - right
+
+        self.check_goal()
+
+        # If goal reached, stop everything
+        if self.state == "GOAL_REACHED":
+            self.last_action = "STOP"
+            return
+
+        # -------------------------
+        # STUCK DETECTION → RECOVERY
+        # -------------------------
         if self.last_front is not None:
             if abs(front - self.last_front) < 0.5:
                 self.stuck_counter += 1
@@ -52,89 +72,72 @@ class FSM:
             self.stuck_counter = 0
             return
 
-        # -----------------------
-        # GOAL / EXIT DETECTION (CRITICAL FIX)
-        # -----------------------
-        if front < 8 and left < 8 and right < 8:
-            self.state = "GOAL_REACHED"
-            return
-
-        # -----------------------
-        # OBSTACLE AVOID ENTRY
-        # -----------------------
-        if self.state != "AVOID" and front > FRONT_AVOID_ON:
+        # -------------------------
+        # AVOID STATE ENTRY
+        # -------------------------
+        if front > FRONT_AVOID_ON and self.state != "AVOID":
             self.state = "AVOID"
             self.avoid_counter = 0
             return
 
-        # -----------------------
-        # OBSTACLE AVOID EXIT
-        # -----------------------
-        if self.state == "AVOID":
-            if front < FRONT_AVOID_OFF:
-                self.state = "EXPLORE"
-                self.avoid_counter = 0
-            return
-
-        # -----------------------
+        # -------------------------
         # WALL FOLLOW DETECTION
-        # -----------------------
-        if abs(left - right) > WALL_DIFF_SMALL:
+        # -------------------------
+        if abs(diff) > WALL_DEADZONE:
             self.wall_counter += 1
         else:
             self.wall_counter = 0
 
         if self.wall_counter > STATE_CONFIRM_COUNT:
             self.state = "WALL_FOLLOW"
-        else:
-            self.state = "EXPLORE"
+        elif self.wall_counter == 0:
+            if self.state not in ["AVOID", "RECOVERY"]:
+                self.state = "EXPLORE"
 
-    # -----------------------
-    # ACTION DECISION
-    # -----------------------
-    def get_action(self, sensor_data):
-        front = sensor_data["front"]
-        left = sensor_data["left"]
-        right = sensor_data["right"]
+    # -------------------------
+    # ACTION OUTPUT
+    # -------------------------
+    def get_action(self, sensor):
+        front = sensor["front"]
+        left = sensor["left"]
+        right = sensor["right"]
 
-        # -----------------------
-        # PRIORITY 1: GOAL (ABSOLUTE STOP)
-        # -----------------------
+        diff = left - right
+
+        # -------------------------
+        # GOAL → STOP
+        # -------------------------
         if self.state == "GOAL_REACHED":
             return "STOP"
 
-        # -----------------------
-        # RECOVERY
-        # -----------------------
+        # -------------------------
+        # RECOVERY → turn away from last front
+        # -------------------------
         if self.state == "RECOVERY":
             return "TURN_LEFT" if left < right else "TURN_RIGHT"
 
-        # -----------------------
-        # AVOID
-        # -----------------------
+        # -------------------------
+        # AVOID → escape manoeuvre
+        # -------------------------
         if self.state == "AVOID":
             self.avoid_counter += 1
 
             if self.avoid_counter == 1:
                 self.escape_turn = "LEFT" if left < right else "RIGHT"
 
-            if self.avoid_counter < 6:
+            if self.avoid_counter < ESCAPE_LIMIT:
                 return "TURN_LEFT" if self.escape_turn == "LEFT" else "TURN_RIGHT"
-
-            elif self.avoid_counter < 12:
-                return "MOVE_FORWARD"
-
             else:
                 self.state = "EXPLORE"
                 self.avoid_counter = 0
                 return "MOVE_FORWARD"
 
-        # -----------------------
-        # WALL FOLLOW (RIGHT-HAND RULE HYBRID)
-        # -----------------------
+        # -------------------------
+        # WALL FOLLOW → center between walls
+        # -------------------------
         if self.state == "WALL_FOLLOW":
             diff = left - right
-
+            
             if diff > WALL_DIFF_STRONG:
                 return "TURN_RIGHT"
             elif diff < -WALL_DIFF_STRONG:
@@ -144,58 +147,34 @@ class FSM:
             elif diff < -WALL_DIFF_SMALL:
                 return "SLIGHT_LEFT"
             else:
-                return "MOVE_FORWARD"
+                return "MOVE_FORWARD"        
+            
+        # -------------------------
+        # EXPLORE → default safe forward
+        # -------------------------
+        action = "MOVE_FORWARD"
 
-        # -----------------------
-        # EXPLORE (SAFE MODE - NO ESCAPE BUG)
-        # -----------------------
-        if self.state == "EXPLORE":
+        # corridor stability: slight correction if moving straight too long
+        if self.last_action == "MOVE_FORWARD":
+            self.state_confirm_counter += 1
+        else:
+            self.state_confirm_counter = 0
 
-            # SAFE OPEN SPACE DEFINITION (CRITICAL FIX)
-            open_space = front > 20 and left > 20 and right > 20
+        if self.state_confirm_counter > (STUCK_LIMIT // 2):
+            self.state_confirm_counter = 0
+            action = "SLIGHT_RIGHT" if left > right else "SLIGHT_LEFT"
 
-            # -----------------------
-            # CORRIDOR STABILITY
-            # -----------------------
-            if self.last_action == "MOVE_FORWARD":
-                self.straight_counter += 1
-            else:
-                self.straight_counter = 0
+        # small adjustment for open space
+        if front > 30 and abs(left - right) > 5:
+            action = "SLIGHT_RIGHT" if left > right else "SLIGHT_LEFT"
 
-            if self.straight_counter > 25:
-                self.straight_counter = 0
-                return "SLIGHT_LEFT" if left > right else "SLIGHT_RIGHT"
+        # light memory: prevent repeated same turn
+        self.turn_memory.append(action)
+        if len(self.turn_memory) > 6:
+            self.turn_memory.pop(0)
 
-            # -----------------------
-            # OPEN SPACE CONTROL (NO ESCAPE)
-            # -----------------------
-            if open_space:
-                return "SLIGHT_LEFT" if left > right else "SLIGHT_RIGHT"
+        if self.turn_memory.count(action) > 3:
+            action = "MOVE_FORWARD"
 
-            # -----------------------
-            # WALL GUIDANCE
-            # -----------------------
-            if left > right + 3:
-                action = "SLIGHT_RIGHT"
-            elif right > left + 3:
-                action = "SLIGHT_LEFT"
-            else:
-                action = "MOVE_FORWARD"
-
-            # -----------------------
-            # LOOP PREVENTION (LIGHT MEMORY)
-            # -----------------------
-            self.turn_memory.append(action)
-            if len(self.turn_memory) > 6:
-                self.turn_memory.pop(0)
-
-            if self.turn_memory.count(action) > 3:
-                action = "MOVE_FORWARD"
-
-            self.last_action = action
-            return action
-
-        # -----------------------
-        # SAFETY FALLBACK
-        # -----------------------
-        return "STOP"
+        self.last_action = action
+        return action

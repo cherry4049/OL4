@@ -13,5 +13,9 @@ FRONT_AVOID_ON = 80
 FRONT_AVOID_OFF = 70
 
 # Wall following sensitivity
-WALL_DIFF_SMALL = 3
-WALL_DIFF_STRONG = 8
+WALL_DIFF_SMALL = 6
+WALL_DIFF_STRONG = 12
+WALL_DEADZONE = 5
+
+# Wall detection threshold
+WALL_THRESHOLD = 75

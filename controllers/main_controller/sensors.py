@@ -8,10 +8,10 @@ class Sensors:
 
         print("RAW:", values)
 
-        # Group sensors
+        # Group sensors (ONLY stable sensors (NO ps5 / back-left))
         front = (values[7] + values[0]) * 0.5
-        left = (values[6] + values[5]) * 0.5
-        right = (values[1] + values[2]) * 0.5
+        left = values[6]
+        right = values[1]
 
         return {
             "front": front,
