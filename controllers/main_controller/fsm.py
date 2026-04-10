@@ -1,4 +1,5 @@
 from config import *
+import random
 
 class FSM:
     def __init__(self, camera):
@@ -214,5 +215,12 @@ class FSM:
         if self.turn_memory.count(action) > 3:
             action = "MOVE_FORWARD"
 
+        # -------------------------
+        # RANDOM EXPLORATION (SAFE ADDITION)
+        # -------------------------
+        if self.state == "EXPLORE":
+            if random.random() < 0.05:  # 5% chance
+                action = random.choice(["TURN_LEFT", "TURN_RIGHT"])
+                
         self.last_action = action
         return action
