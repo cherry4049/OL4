@@ -18,9 +18,9 @@ __pycache__/
 *.log
 *.tmp
 *.backup
-*~                 # common editor backup files
+*~
 *.wbproj
-cache/             # Webots cache folder
+cache/
 
 # ==========================
 # Compiled Webots controllers

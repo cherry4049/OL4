@@ -85,7 +85,7 @@ Wall {
   name "wall(33)"
   size 0.01 0.1 0.25
   appearance Roughcast {
-    colorOverride 0 1 0
+    colorOverride 1 1 1
     textureTransform TextureTransform {
       scale 2.4 1
     }
@@ -169,7 +169,7 @@ Wall {
   name "wall(22)"
   size 0.01 0.1 0.25
   appearance Roughcast {
-    colorOverride 0 1 0
+    colorOverride 1 1 0
     textureTransform TextureTransform {
       scale 2.4 1
     }
@@ -252,12 +252,6 @@ Wall {
   rotation 0.9999999999871194 5.0755399999346245e-06 -2.397449999969119e-09 1.57079
   name "wall(36)"
   size 0.01 0.1 0.5
-  appearance Roughcast {
-    colorOverride 0 1 0
-    textureTransform TextureTransform {
-      scale 2.4 1
-    }
-  }
 }
 E-puck {
   hidden position_0_0 22.410205414280604

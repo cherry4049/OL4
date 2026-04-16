@@ -2,16 +2,42 @@ from controller import Robot
 from sensors import Sensors
 from fsm import FSM
 import movement
+from config import GOAL_CONFIRM_TIME
+
+def detect_goal(camera):
+    image = camera.getImage()
+    width = camera.getWidth()
+    height = camera.getHeight()
+
+    green_count = 0
+    total = 0
+
+    for dx in range(-5, 6):
+        for dy in range(-4, 5):
+            cx = width // 2 + dx
+            cy = height // 2 + dy
+
+            r = camera.imageGetRed(image, width, cx, cy)
+            g = camera.imageGetGreen(image, width, cx, cy)
+            b = camera.imageGetBlue(image, width, cx, cy)
+
+            total += 1
+
+            if g > r + 15 and g > b + 15:
+                green_count += 1
+
+    if total == 0:
+        return False
+
+    green_ratio = green_count / total
+    return green_ratio > 0.65
+
 
 def main():
     robot = Robot()
     timestep = int(robot.getBasicTimeStep())
 
     camera = robot.getDevice("camera")
-    if camera is None:
-        print("NO CAMERA DEVICE IN RUNTIME")
-    else:
-        print("CAMERA EXISTS")
     camera.enable(timestep)
 
     left_motor = robot.getDevice("left wheel motor")
@@ -20,35 +46,42 @@ def main():
     left_motor.setPosition(float('inf'))
     right_motor.setPosition(float('inf'))
 
-    # Initialise proximity sensors
-    #--------------
+    # Proximity sensors
     ps = []
     for i in range(8):
         sensor = robot.getDevice(f"ps{i}")
-        if sensor is not None:
-            sensor.enable(timestep)
-            ps.append(sensor)
-        else:
-            print(f"Warning: ps{i} not found")
-    #-------------------------
+        sensor.enable(timestep)
+        ps.append(sensor)
 
-    # Initialise modules
     sensors = Sensors(robot, ps)
-    fsm = FSM(camera)
+    fsm = FSM()
+
+    goal_counter = 0
 
     while robot.step(timestep) != -1:
-        # 1. Read sensor data
         sensor_data = sensors.read()
 
-        # 2. Update FSM
-        fsm.update(sensor_data)
+        # -------------------------
+        # GOAL DETECTION (moved here)
+        # -------------------------
+        if detect_goal(camera):
+            goal_counter += 1
+        else:
+            goal_counter = 0
 
-        # 3. Get action from FSM
+        goal_detected = goal_counter >= GOAL_CONFIRM_TIME
+
+        # -------------------------
+        # FSM
+        # -------------------------
+        fsm.update(sensor_data, goal_detected)
         action = fsm.get_action(sensor_data)
 
-        print(f"{fsm.state} -> {action}", sensor_data) # log for debugging
+        print(f"{fsm.state} -> {action}", sensor_data)
 
-        # 4. Execute action
+        # -------------------------
+        # EXECUTE
+        # -------------------------
         if action == "MOVE_FORWARD":
             movement.move_forward(left_motor, right_motor)
         elif action == "TURN_LEFT":
@@ -59,13 +92,13 @@ def main():
             movement.slight_left(left_motor, right_motor)
         elif action == "SLIGHT_RIGHT":
             movement.slight_right(left_motor, right_motor)
-        elif action == "STOP":
-            movement.stop(left_motor, right_motor)
-        elif action == "GOAL_REACHED":
-            movement.stop(left_motor, right_motor)
-            break # stops the controller loop
         else:
             movement.stop(left_motor, right_motor)
+
+        # stop simulation when goal reached
+        if fsm.state == "GOAL_REACHED":
+            print("GOAL REACHED — STOPPING")
+            break
 
 
 if __name__ == "__main__":
