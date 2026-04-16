@@ -156,7 +156,7 @@ class FSM:
         if self.turn_memory.count(action) > 3:
             action = "MOVE_FORWARD"
 
-        if self.state == "EXPLORE":
+        if self.state == "EXPLORE" and front < WALL_THRESHOLD:
             if random.random() < 0.05:
                 action = random.choice(["TURN_LEFT", "TURN_RIGHT"])
 
