@@ -23,6 +23,8 @@ class FSM:
         # Last front sensor
         self.last_front = None
 
+        self.recovery_step = 0
+
     # -------------------------
     # STATE UPDATE
     # -------------------------
@@ -99,7 +101,21 @@ class FSM:
         # RECOVERY
         # -------------------------
         if self.state == "RECOVERY":
-            return "TURN_LEFT" if left < right else "TURN_RIGHT"
+            self.recovery_step += 1
+
+            # step 1: turn away from obstacle
+            if self.recovery_step < 10:
+                return "TURN_LEFT" if left < right else "TURN_RIGHT"
+            
+            # step 2: move forward to escape area
+            elif self.recovery_step < 25:
+                return "MOVE_FORWARD"
+            
+            # step 3: reset
+            else:
+                self.state = "EXPLORE"
+                self.recovery_step = 0
+                return "MOVE_FORWARD"
 
         # -------------------------
         # AVOID
