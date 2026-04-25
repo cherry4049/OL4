@@ -1,60 +1,75 @@
-# navigator.py
+# navigator.py (V5 STABLE - FSM FRIENDLY)
 
-from config import MAX_SPEED
+from config import *
 
-SAFE_SPEED = 4.5  # keep below Webots limit (6.28 safety margin)
-
-
-def clamp_speed(v):
-    if v > SAFE_SPEED:
-        return SAFE_SPEED
-    if v < -SAFE_SPEED:
-        return -SAFE_SPEED
+# -----------------------------
+# Safety clamp (fix sensor spikes)
+# -----------------------------
+def clamp(v, min_v=0, max_v=300):
+    if v < min_v:
+        return min_v
+    if v > max_v:
+        return max_v
     return v
 
 
-def set_motors(left_motor, right_motor, left_speed, right_speed):
-    left_motor.setVelocity(clamp_speed(left_speed))
-    right_motor.setVelocity(clamp_speed(right_speed))
+def normalize(front, left, right):
+    # clamp extreme spikes first
+    front = clamp(front)
+    left = clamp(left)
+    right = clamp(right)
+
+    return front, left, right
 
 
-# ---------------------------
-# PURE ACTION FUNCTIONS
-# ---------------------------
+# -----------------------------
+# Core navigation (no FSM conflict)
+# -----------------------------
+def navigate(left_motor, right_motor, front, left, right):
 
-def wall_follow(left_motor, right_motor, left, right, front):
-    """
-    Simple reactive wall following.
-    NO FSM logic here.
-    """
+    front, left, right = normalize(front, left, right)
 
-    base = SAFE_SPEED
+    # ---- PARAMETERS (safe defaults) ----
+    BASE_SPEED = 3.0
+    TURN_GAIN = 0.015
+    FRONT_THRESHOLD = 120
 
-    # steering correction (keep simple + stable)
-    error = left - right
-    correction = error * 0.01  # small gain to avoid oscillation
+    # ---- compute balanced steering ----
+    error = right - left
+    turn = TURN_GAIN * error
 
-    left_speed = base - correction
-    right_speed = base + correction
+    # slow down if front blocked
+    if front > FRONT_THRESHOLD:
+        base = 1.5
+    else:
+        base = BASE_SPEED
 
-    set_motors(left_motor, right_motor, left_speed, right_speed)
+    # final motor speeds
+    left_speed = base - turn
+    right_speed = base + turn
 
+    # clamp motor speed (IMPORTANT: fixes your warning)
+    MAX_SPEED = 6.28
 
-def avoid(left_motor, right_motor):
-    """
-    Simple obstacle avoidance: rotate in place.
-    """
+    left_speed = max(-MAX_SPEED, min(MAX_SPEED, left_speed))
+    right_speed = max(-MAX_SPEED, min(MAX_SPEED, right_speed))
 
-    set_motors(left_motor, right_motor, -SAFE_SPEED, SAFE_SPEED)
-
-
-def recovery(left_motor, right_motor):
-    """
-    Back off slightly then turn.
-    """
-
-    set_motors(left_motor, right_motor, -SAFE_SPEED * 0.6, -SAFE_SPEED * 0.6)
+    left_motor.setVelocity(left_speed)
+    right_motor.setVelocity(right_speed)
 
 
+# -----------------------------
+# Emergency escape (corner fix)
+# -----------------------------
+def escape_corner(left_motor, right_motor):
+    # strong reverse + turn
+    left_motor.setVelocity(-2.0)
+    right_motor.setVelocity(2.0)
+
+
+# -----------------------------
+# Stop
+# -----------------------------
 def stop(left_motor, right_motor):
-    set_motors(left_motor, right_motor, 0, 0)
+    left_motor.setVelocity(0)
+    right_motor.setVelocity(0)
