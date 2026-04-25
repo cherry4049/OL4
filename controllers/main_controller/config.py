@@ -1,27 +1,56 @@
-# Speeds
-FORWARD_SPEED = 5.5
-TURN_SPEED = 3.0
-SLIGHT_SPEED_DIFF = 1.5
+# =========================
+# SPEEDS (safe & stable)
+# =========================
+FORWARD_SPEED = 5.2
+TURN_SPEED = 3.2
+SLIGHT_SPEED_DIFF = 1.2
+MAX_SPEED = 6.28  # e-puck limit
 
-# Stability
-STUCK_LIMIT = 18
-STATE_CONFIRM_COUNT = 6
-WALL_THRESHOLD = 70
-OPEN_THRESHOLD = 80
+# =========================
+# FSM STABILITY (IMPORTANT)
+# =========================
+STUCK_LIMIT = 22
+STATE_CONFIRM_COUNT = 8   # stronger than v5 to stop flickering
 
-# Avoid (hysteresis)
-FRONT_AVOID_ON = 95
-FRONT_AVOID_OFF = 70
-ESCAPE_LIMIT = 8
+# =========================
+# WALL / OPEN DETECTION (FIXED SCALE)
+# Based on your real sensor range (60–200 normal, spikes >900)
+# =========================
+WALL_THRESHOLD = 110      # was too low in v5
+OPEN_THRESHOLD = 160      # clearer separation from wall
 
-# Wall following sensitivity
-WALL_DIFF_SMALL = 18
-WALL_DIFF_STRONG = 35
-WALL_DEADZONE = 10
+# =========================
+# AVOID HYSTERESIS (CRITICAL FIX)
+# Prevents EXPLORE ↔ AVOID oscillation
+# =========================
+FRONT_AVOID_ON = 120
+FRONT_AVOID_OFF = 95      # wider gap = no flip-flop
 
-# Goal detection time
+# =========================
+# ESCAPE / RECOVERY
+# =========================
+ESCAPE_LIMIT = 10
+
+# =========================
+# WALL FOLLOWING (LESS NOISY)
+# =========================
+WALL_DIFF_SMALL = 30
+WALL_DIFF_STRONG = 65
+WALL_DEADZONE = 12
+
+# =========================
+# GOAL DETECTION (UNCHANGED)
+# =========================
 GOAL_CONFIRM_TIME = 110
 
-# Side opening detection
-SIDE_OPEN = 80 # open corridor threshold (lower = more open)
-SIDE_WALL = 120 # wall detected threshold (higher = close wall)
+# =========================
+# JUNCTION DETECTION (IMPORTANT FIX AREA)
+# =========================
+SIDE_OPEN = 130   # more tolerant (reduces fake openings)
+SIDE_WALL = 180   # separates real wall vs noise
+
+# =========================
+# SENSOR SPIKE SAFETY (NEW - IMPORTANT FOR YOUR BUGS)
+# =========================
+SENSOR_MAX_CLAMP = 400   # anything above is noise spike
+SENSOR_MIN_VALID = 40    # ignore extremely low noise values
