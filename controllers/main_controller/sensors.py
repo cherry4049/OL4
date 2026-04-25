@@ -1,20 +1,29 @@
 class Sensors:
     def __init__(self, robot, ps):
-        self.robot = robot
         self.ps = ps
+        self.prev = [0.0] * 8
+        self.alpha = 0.35
+
+    def clean(self, v):
+        return min(v, 800)  # prevent IR explosion
 
     def read(self):
-        values = [p.getValue() for p in self.ps]
+        raw = [self.clean(p.getValue()) for p in self.ps]
 
-        print("RAW:", values)
+        # EMA smoothing
+        smooth = []
+        for i in range(8):
+            v = self.alpha * raw[i] + (1 - self.alpha) * self.prev[i]
+            smooth.append(v)
+            self.prev[i] = v
 
-        # Group sensors (ONLY stable sensors (NO ps5 / back-left))
-        front = (values[7] + values[0]) * 0.5
-        left = values[6]
-        right = values[1]
+        front = (smooth[7] + smooth[0]) * 0.5
+        left = smooth[6]
+        right = smooth[1]
 
         return {
             "front": front,
             "left": left,
-            "right": right
+            "right": right,
+            "raw": raw
         }

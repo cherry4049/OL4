@@ -1,36 +1,32 @@
 from controller import Robot
 from sensors import Sensors
 from fsm import FSM
-import movement
-from config import GOAL_CONFIRM_TIME
+from movement import *
+
+from config import *
 
 def detect_goal(camera):
-    image = camera.getImage()
-    width = camera.getWidth()
-    height = camera.getHeight()
+    img = camera.getImage()
+    w = camera.getWidth()
+    h = camera.getHeight()
 
-    green_count = 0
-    total = 0
+    g = 0
+    t = 0
 
     for dx in range(-5, 6):
         for dy in range(-4, 5):
-            cx = width // 2 + dx
-            cy = height // 2 + dy
+            x = w//2 + dx
+            y = h//2 + dy
 
-            r = camera.imageGetRed(image, width, cx, cy)
-            g = camera.imageGetGreen(image, width, cx, cy)
-            b = camera.imageGetBlue(image, width, cx, cy)
+            r = camera.imageGetRed(img, w, x, y)
+            gr = camera.imageGetGreen(img, w, x, y)
+            b = camera.imageGetBlue(img, w, x, y)
 
-            total += 1
+            t += 1
+            if gr > r + 15 and gr > b + 15:
+                g += 1
 
-            if g > r + 15 and g > b + 15:
-                green_count += 1
-
-    if total == 0:
-        return False
-
-    green_ratio = green_count / total
-    return green_ratio > 0.65
+    return t > 0 and (g / t) > 0.65
 
 
 def main():
@@ -46,59 +42,63 @@ def main():
     left_motor.setPosition(float('inf'))
     right_motor.setPosition(float('inf'))
 
-    # Proximity sensors
     ps = []
     for i in range(8):
-        sensor = robot.getDevice(f"ps{i}")
-        sensor.enable(timestep)
-        ps.append(sensor)
+        s = robot.getDevice(f"ps{i}")
+        s.enable(timestep)
+        ps.append(s)
 
     sensors = Sensors(robot, ps)
     fsm = FSM()
 
     goal_counter = 0
+    tick = 0
+
+    STARTUP = 20
 
     while robot.step(timestep) != -1:
-        sensor_data = sensors.read()
 
-        # -------------------------
-        # GOAL DETECTION (moved here)
-        # -------------------------
+        # -----------------------
+        # STARTUP STABILISATION
+        # -----------------------
+        if tick < STARTUP:
+            left_motor.setVelocity(0)
+            right_motor.setVelocity(0)
+            tick += 1
+            continue
+
+        sensor = sensors.read()
+
         if detect_goal(camera):
             goal_counter += 1
         else:
             goal_counter = 0
 
-        goal_detected = goal_counter >= GOAL_CONFIRM_TIME
+        goal = goal_counter >= GOAL_CONFIRM_TIME
 
-        # -------------------------
-        # FSM
-        # -------------------------
-        fsm.update(sensor_data, goal_detected)
-        action = fsm.get_action(sensor_data)
+        fsm.update(sensor, goal)
+        state = fsm.get_state()
 
-        print(f"{fsm.state} -> {action}", sensor_data)
+        print("STATE:", state, sensor)
 
-        # -------------------------
-        # EXECUTE
-        # -------------------------
-        if action == "MOVE_FORWARD":
-            movement.move_forward(left_motor, right_motor)
-        elif action == "TURN_LEFT":
-            movement.turn_left(left_motor, right_motor)
-        elif action == "TURN_RIGHT":
-            movement.turn_right(left_motor, right_motor)
-        elif action == "SLIGHT_LEFT":
-            movement.slight_left(left_motor, right_motor)
-        elif action == "SLIGHT_RIGHT":
-            movement.slight_right(left_motor, right_motor)
-        else:
-            movement.stop(left_motor, right_motor)
+        if state == "EXPLORE":
+            wall_follow(left_motor, right_motor,
+                        sensor["left"], sensor["right"], sensor["front"])
 
-        # stop simulation when goal reached
-        if fsm.state == "GOAL_REACHED":
-            print("GOAL REACHED — STOPPING")
+        elif state == "TURN_LEFT":
+            turn_left(left_motor, right_motor)
+
+        elif state == "TURN_RIGHT":
+            turn_right(left_motor, right_motor)
+
+        elif state == "ESCAPE":
+            escape(left_motor, right_motor)
+
+        elif state == "GOAL_REACHED":
+            stop(left_motor, right_motor)
             break
+
+        tick += 1
 
 
 if __name__ == "__main__":

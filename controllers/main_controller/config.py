@@ -3,22 +3,25 @@ FORWARD_SPEED = 5.5
 TURN_SPEED = 3.0
 SLIGHT_SPEED_DIFF = 1.5
 
-# Behaviour timing
-ESCAPE_LIMIT = 20
-STUCK_LIMIT = 50
-STATE_CONFIRM_COUNT = 3
+# Stability
+STUCK_LIMIT = 18
+STATE_CONFIRM_COUNT = 6
+WALL_THRESHOLD = 70
+OPEN_THRESHOLD = 80
 
 # Avoid (hysteresis)
-FRONT_AVOID_ON = 80
+FRONT_AVOID_ON = 95
 FRONT_AVOID_OFF = 70
+ESCAPE_LIMIT = 8
 
 # Wall following sensitivity
-WALL_DIFF_SMALL = 6
-WALL_DIFF_STRONG = 12
-WALL_DEADZONE = 5
-
-# Wall detection threshold
-WALL_THRESHOLD = 75
+WALL_DIFF_SMALL = 18
+WALL_DIFF_STRONG = 35
+WALL_DEADZONE = 10
 
 # Goal detection time
 GOAL_CONFIRM_TIME = 110
+
+# Side opening detection
+SIDE_OPEN = 80 # open corridor threshold (lower = more open)
+SIDE_WALL = 120 # wall detected threshold (higher = close wall)

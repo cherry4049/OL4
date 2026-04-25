@@ -1,33 +1,34 @@
-from config import FORWARD_SPEED, TURN_SPEED, SLIGHT_SPEED_DIFF
+MAX_SPEED = 6.0
 
-MAX_SPEED = 6.28  # e-puck limit
+def clamp(v):
+    return max(-MAX_SPEED, min(MAX_SPEED, v))
 
-def clamp(speed):
-    return max(-MAX_SPEED, min(MAX_SPEED, speed))
 
-def move_forward(left_motor, right_motor):
-    left_motor.setVelocity(clamp(FORWARD_SPEED))
-    right_motor.setVelocity(clamp(FORWARD_SPEED))
+def wall_follow(left_motor, right_motor, left, right, front):
+    base = 3.0
+    error = left - right
+
+    left_speed = base + error * 0.003
+    right_speed = base - error * 0.003
+
+    left_motor.setVelocity(clamp(left_speed))
+    right_motor.setVelocity(clamp(right_speed))
+
 
 def turn_left(left_motor, right_motor):
-    left_motor.setVelocity(clamp(-TURN_SPEED))
-    right_motor.setVelocity(clamp(TURN_SPEED))
+    left_motor.setVelocity(-3)
+    right_motor.setVelocity(3)
+
 
 def turn_right(left_motor, right_motor):
-    left_motor.setVelocity(clamp(TURN_SPEED))
-    right_motor.setVelocity(clamp(-TURN_SPEED))
+    left_motor.setVelocity(3)
+    right_motor.setVelocity(-3)
 
-def slight_left(left_motor, right_motor):
-    left = FORWARD_SPEED - SLIGHT_SPEED_DIFF
-    right = FORWARD_SPEED + SLIGHT_SPEED_DIFF
-    left_motor.setVelocity(clamp(left))
-    right_motor.setVelocity(clamp(right))
 
-def slight_right(left_motor, right_motor):
-    left = FORWARD_SPEED + SLIGHT_SPEED_DIFF
-    right = FORWARD_SPEED - SLIGHT_SPEED_DIFF
-    left_motor.setVelocity(clamp(left))
-    right_motor.setVelocity(clamp(right))
+def escape(left_motor, right_motor):
+    left_motor.setVelocity(-2)
+    right_motor.setVelocity(-2)
+
 
 def stop(left_motor, right_motor):
     left_motor.setVelocity(0)
