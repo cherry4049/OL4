@@ -1,75 +1,64 @@
-# navigator.py (V5 STABLE - FSM FRIENDLY)
+from movement import set_speed
 
-from config import *
+def navigate(left_motor, right_motor, state, sensor):
 
-# -----------------------------
-# Safety clamp (fix sensor spikes)
-# -----------------------------
-def clamp(v, min_v=0, max_v=300):
-    if v < min_v:
-        return min_v
-    if v > max_v:
-        return max_v
-    return v
+    # -------------------------
+    # HARD STATES
+    # -------------------------
+    if state == "GOAL_REACHED":
+        set_speed(left_motor, right_motor, 0, 0)
+        return
 
+    if state == "ESCAPE":
+        set_speed(left_motor, right_motor, 2.5, -2.5)
+        return
 
-def normalize(front, left, right):
-    # clamp extreme spikes first
-    front = clamp(front)
-    left = clamp(left)
-    right = clamp(right)
+    if state == "TURN_RIGHT":
+        set_speed(left_motor, right_motor, 2.2, -2.2)
+        return
 
-    return front, left, right
+    # -------------------------
+    # EXPLORE (SLIDING WALL FOLLOW - STABLE VERSION)
+    # -------------------------
 
+    BASE = 2.5
+    TARGET = 140
 
-# -----------------------------
-# Core navigation (no FSM conflict)
-# -----------------------------
-def navigate(left_motor, right_motor, front, left, right):
+    # distance control (wall distance)
+    dist_error = sensor["left"] - TARGET
 
-    front, left, right = normalize(front, left, right)
+    if abs(dist_error) < 5:
+        dist_error = 0
 
-    # ---- PARAMETERS (safe defaults) ----
-    BASE_SPEED = 3.0
-    TURN_GAIN = 0.015
-    FRONT_THRESHOLD = 120
+    k_dist = 0.008
+    dist_correction = k_dist * dist_error
 
-    # ---- compute balanced steering ----
-    error = right - left
-    turn = TURN_GAIN * error
+    # -------------------------
+    # ANGLE CONTROL (SAFE VERSION)
+    # -------------------------
+    # FIX: always use raw fields safely
+    angle_error = sensor["left_raw"] - sensor["right_raw"]
 
-    # slow down if front blocked
-    if front > FRONT_THRESHOLD:
-        base = 1.5
-    else:
-        base = BASE_SPEED
+    if abs(angle_error) < 5:
+        angle_error = 0
 
-    # final motor speeds
-    left_speed = base - turn
-    right_speed = base + turn
+    k_angle = 0.01
+    angle_correction = k_angle * angle_error
 
-    # clamp motor speed (IMPORTANT: fixes your warning)
-    MAX_SPEED = 6.28
+    # combine
+    turn = dist_correction + angle_correction
 
-    left_speed = max(-MAX_SPEED, min(MAX_SPEED, left_speed))
-    right_speed = max(-MAX_SPEED, min(MAX_SPEED, right_speed))
+    # -------------------------
+    # FRONT SAFETY (ROBUST)
+    # -------------------------
+    if sensor["front"] > 180:
+        set_speed(left_motor, right_motor, -1.5, 2.5)
+        return
 
-    left_motor.setVelocity(left_speed)
-    right_motor.setVelocity(right_speed)
+    # -------------------------
+    # APPLY
+    # -------------------------
+    l = BASE - turn
+    r = BASE + turn
 
-
-# -----------------------------
-# Emergency escape (corner fix)
-# -----------------------------
-def escape_corner(left_motor, right_motor):
-    # strong reverse + turn
-    left_motor.setVelocity(-2.0)
-    right_motor.setVelocity(2.0)
-
-
-# -----------------------------
-# Stop
-# -----------------------------
-def stop(left_motor, right_motor):
-    left_motor.setVelocity(0)
-    right_motor.setVelocity(0)
+    set_speed(left_motor, right_motor, l, r)

@@ -1,29 +1,43 @@
+from controller import Robot
+
 class Sensors:
     def __init__(self, robot, ps):
         self.ps = ps
-        self.prev = [0.0] * 8
-        self.alpha = 0.35
 
-    def clean(self, v):
-        return min(v, 800)  # prevent IR explosion
+        self.history = {
+            "front": [],
+            "left": [],
+            "right": []
+        }
+
+        self.window = 5
+        self.MAX_SENSOR = 300
+
+    def clamp(self, v):
+        return min(v, self.MAX_SENSOR)
+
+    def smooth(self, key, value):
+        self.history[key].append(value)
+        if len(self.history[key]) > self.window:
+            self.history[key].pop(0)
+        return sum(self.history[key]) / len(self.history[key])
 
     def read(self):
-        raw = [self.clean(p.getValue()) for p in self.ps]
+        raw = [self.clamp(s.getValue()) for s in self.ps]
 
-        # EMA smoothing
-        smooth = []
-        for i in range(8):
-            v = self.alpha * raw[i] + (1 - self.alpha) * self.prev[i]
-            smooth.append(v)
-            self.prev[i] = v
-
-        front = (smooth[7] + smooth[0]) * 0.5
-        left = smooth[6]
-        right = smooth[1]
+        front_raw = raw[0]
+        left_raw  = raw[5]
+        right_raw = raw[7]
 
         return {
-            "front": front,
-            "left": left,
-            "right": right,
+            # smoothed (control signals)
+            "front": self.smooth("front", front_raw),
+            "left": self.smooth("left", left_raw),
+            "right": self.smooth("right", right_raw),
+
+            # raw geometry (NEVER LOST)
+            "front_raw": front_raw,
+            "left_raw": left_raw,
+            "right_raw": right_raw,
             "raw": raw
         }

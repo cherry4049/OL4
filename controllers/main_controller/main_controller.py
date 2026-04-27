@@ -1,8 +1,7 @@
 from controller import Robot
 from sensors import Sensors
 from fsm import FSM
-from movement import *
-
+from navigator import navigate
 from config import *
 
 def detect_goal(camera):
@@ -29,6 +28,23 @@ def detect_goal(camera):
     return t > 0 and (g / t) > 0.65
 
 
+def smooth(prev, curr, alpha=0.75):
+    if prev is None:
+        return curr
+
+    return {
+        "front": alpha * prev["front"] + (1 - alpha) * curr["front"],
+        "left": alpha * prev["left"] + (1 - alpha) * curr["left"],
+        "right": alpha * prev["right"] + (1 - alpha) * curr["right"],
+
+        # IMPORTANT: preserve raw data
+        "front_raw": curr["front_raw"],
+        "left_raw": curr["left_raw"],
+        "right_raw": curr["right_raw"],
+        "raw": curr["raw"]
+    }
+
+
 def main():
     robot = Robot()
     timestep = int(robot.getBasicTimeStep())
@@ -53,22 +69,23 @@ def main():
 
     goal_counter = 0
     tick = 0
+    STARTUP = 40
 
-    STARTUP = 20
+    prev_sensor = None
 
     while robot.step(timestep) != -1:
 
-        # -----------------------
-        # STARTUP STABILISATION
-        # -----------------------
         if tick < STARTUP:
             left_motor.setVelocity(0)
             right_motor.setVelocity(0)
             tick += 1
             continue
 
-        sensor = sensors.read()
+        raw_sensor = sensors.read()
+        sensor = smooth(prev_sensor, raw_sensor)
+        prev_sensor = sensor
 
+        # goal detection
         if detect_goal(camera):
             goal_counter += 1
         else:
@@ -81,22 +98,7 @@ def main():
 
         print("STATE:", state, sensor)
 
-        if state == "EXPLORE":
-            wall_follow(left_motor, right_motor,
-                        sensor["left"], sensor["right"], sensor["front"])
-
-        elif state == "TURN_LEFT":
-            turn_left(left_motor, right_motor)
-
-        elif state == "TURN_RIGHT":
-            turn_right(left_motor, right_motor)
-
-        elif state == "ESCAPE":
-            escape(left_motor, right_motor)
-
-        elif state == "GOAL_REACHED":
-            stop(left_motor, right_motor)
-            break
+        navigate(left_motor, right_motor, state, sensor)
 
         tick += 1
 

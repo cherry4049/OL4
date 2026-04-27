@@ -3,33 +3,18 @@ MAX_SPEED = 6.0
 def clamp(v):
     return max(-MAX_SPEED, min(MAX_SPEED, v))
 
-
-def wall_follow(left_motor, right_motor, left, right, front):
-    base = 3.0
-    error = left - right
-
-    left_speed = base + error * 0.003
-    right_speed = base - error * 0.003
-
-    left_motor.setVelocity(clamp(left_speed))
-    right_motor.setVelocity(clamp(right_speed))
-
+def set_speed(left_motor, right_motor, l, r):
+    left_motor.setVelocity(clamp(l))
+    right_motor.setVelocity(clamp(r))
 
 def turn_left(left_motor, right_motor):
-    left_motor.setVelocity(-3)
-    right_motor.setVelocity(3)
-
+    set_speed(left_motor, right_motor, -3, 3)
 
 def turn_right(left_motor, right_motor):
-    left_motor.setVelocity(3)
-    right_motor.setVelocity(-3)
-
+    set_speed(left_motor, right_motor, 3, -3)
 
 def escape(left_motor, right_motor):
-    left_motor.setVelocity(-2)
-    right_motor.setVelocity(-2)
-
+    set_speed(left_motor, right_motor, -3, -3)
 
 def stop(left_motor, right_motor):
-    left_motor.setVelocity(0)
-    right_motor.setVelocity(0)
+    set_speed(left_motor, right_motor, 0, 0)
