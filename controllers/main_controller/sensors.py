@@ -1,43 +1,33 @@
-from controller import Robot
-
 class Sensors:
-    def __init__(self, robot, ps):
+    def __init__(self, robot, ps, encoders=None):
+        self.robot = robot
         self.ps = ps
-
-        self.history = {
-            "front": [],
-            "left": [],
-            "right": []
-        }
-
-        self.window = 5
-        self.MAX_SENSOR = 300
-
-    def clamp(self, v):
-        return min(v, self.MAX_SENSOR)
-
-    def smooth(self, key, value):
-        self.history[key].append(value)
-        if len(self.history[key]) > self.window:
-            self.history[key].pop(0)
-        return sum(self.history[key]) / len(self.history[key])
+        self.encoders = encoders  # wheel encoders for motion tracking
 
     def read(self):
-        raw = [self.clamp(s.getValue()) for s in self.ps]
+        values = [p.getValue() for p in self.ps]
 
-        front_raw = raw[0]
-        left_raw  = raw[5]
-        right_raw = raw[7]
+        front_left = values[7]
+        front_right = values[0]
 
-        return {
-            # smoothed (control signals)
-            "front": self.smooth("front", front_raw),
-            "left": self.smooth("left", left_raw),
-            "right": self.smooth("right", right_raw),
+        # Front distance: average of the two forward-facing sensors
+        front = (values[7] + values[0]) * 0.5
 
-            # raw geometry (NEVER LOST)
-            "front_raw": front_raw,
-            "left_raw": left_raw,
-            "right_raw": right_raw,
-            "raw": raw
+        left = values[6]
+        right = values[1]
+
+        data = {
+            "front_left": front_left,
+            "front_right": front_right,
+            "front": front,
+            "left": left,
+            "right": right
         }
+
+        # Read encoder positions if available (used for motion tracking)
+        if self.encoders:
+            left_enc, right_enc = self.encoders
+            data["enc_left"] = left_enc.getValue()
+            data["enc_right"] = right_enc.getValue()
+
+        return data

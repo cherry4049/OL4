@@ -2,83 +2,236 @@
 
 ## Project Overview
 
-This project is a **simulated autonomous robot** that navigates a maze in Webots using sensors, actuators, and a finite state machine (FSM).  
-The goal is to demonstrate autonomous navigation, obstacle avoidance, exit detection, and integration of robotics concepts learned during the course.
+This project implements a simulated autonomous maze-solving robot using the Webots robotics simulator.  
+The robot navigates through an unknown maze environment using distance sensors, wheel encoders, camera-based goal detection, and a Finite State Machine (FSM).
 
-**Group Members:**
+The project demonstrates key robotics concepts including:
+- autonomous navigation
+- obstacle avoidance
+- wall-following behaviour
+- reactive control systems
+- sensor integration
+- actuator control
+- state-based robot behaviour
 
-- Jenjira Kongpong s5393441,
-- Xinghan TAi,
-- Yuehui Chen, S5361257
-
-**Specialisation Option:** Autonomous Robot (Webots)
-
----
-
-## Repository Structure
-
-This repository is organized to separate **code, simulation worlds, reports, video, and diagrams** for clarity.
-
----
-
-### **Folder Details**
-
-- **`controllers/`**
-  - Contains all robot control code.
-  - Expected files:
-    - `main_controller.py` → Main FSM, sensor integration, and movement logic
-    - `sensors.py` → Optional helper functions for sensor data
-    - `movement.py` → Optional helper functions for wheel movement
-    - Other modules as needed
-
-- **`worlds/`**
-  - Contains all Webots simulation worlds (.wbt) used for testing.
-  - Example: `maze_world.wbt`
-
-- **`report/`**
-  - `pitch_document.docx` → Project proposal submitted in Week 6
-  - `project_report.docx` → Final report submitted in Week 12
-
-- **`video/`**
-  - Screen-recorded demonstration of the robot navigating the maze
-  - Example: `maze_demo.mp4`
-
-- **`diagrams/`**
-  - Visual aids for the project
-  - Example files:
-    - `fsm_diagram.png`
-    - `system_architecture.png`
-
-- **`README.md`**
-  - This file, giving an overview of the project and instructions for team members and markers
-
-- **`.gitignore`**
-  - Used to exclude unnecessary or temporary files (e.g., `.pyc`, `__pycache__/`)
+The robot is designed to:
+- follow walls autonomously
+- avoid obstacles and collisions
+- recover from stuck situations
+- detect and stop at the goal
 
 ---
 
-## Instructions for Team Members
+## Group Members
 
-1. **Add code** to the `controllers/` folder.
-2. **Add simulation worlds** to the `worlds/` folder.
-3. **Update reports** in the `report/` folder.
-4. **Record and add the demonstration video** to the `video/` folder.
-5. **Add FSM and system diagrams** to the `diagrams/` folder.
-6. Commit changes frequently with meaningful messages (e.g., `Added sensor processing module`).
+- Jenjira Kongpong — s5393441  
+- Xinghan Tai — S5251658  
+- Yuehui Chen — S5361257  
 
 ---
 
-## Instructions for Markers
+## Specialisation Option
 
-1. Open **Webots** and load the `.wbt` file(s) in the `worlds/` folder.
-2. Run the **robot controllers** from `controllers/` to reproduce the demonstration.
-3. Review **reports** and **diagrams** for FSM, system design, and behaviour logic.
-4. Watch the **video** to see the robot navigating the maze and state transitions.
+Autonomous Robot (Webots)
 
 ---
 
-## Notes
+# Repository Structure
 
-- All source code should be compatible with **Webots simulator**.
-- Team members are responsible for ensuring that the repository is **up-to-date** with the latest code, reports, diagrams, and videos.
-- Clear organization ensures the project is **easy to review and assess**.
+```text
+OL4/
+│
+├── controllers/
+│   └── main_controller/
+│       ├── __pycache__/
+│       ├── config.py
+│       ├── fsm.py
+│       ├── main_controller.py
+│       ├── movement.py
+│       └── sensors.py
+│
+├── diagrams/
+│   ├── fsm_state_diagram.mmd
+│   ├── system_architecture.mmd
+│   ├── navigation_flowchart.mmd
+│   ├── sensor_layout.mmd
+│   └── wall_following_control.mmd
+│
+├── worlds/
+│   ├── .maze_world.wbproj
+│   └── maze_world.wbt
+│
+├── .gitignore
+└── README.md
+```
+
+---
+
+# Folder Details
+
+## `controllers/`
+
+Contains robot controller source code and documentation.
+
+### `controllers/main_controller/`
+
+Main robot control system implementation.
+
+| File | Purpose |
+|---|---|
+| `main_controller.py` | Main loop, FSM integration, sensor processing, robot control |
+| `fsm.py` | Finite State Machine controlling navigation behaviour |
+| `movement.py` | Motor control with smoothing and turning logic |
+| `sensors.py` | Distance sensor + encoder data processing |
+| `config.py` | All tuning parameters and thresholds |
+
+---
+
+## `worlds/`
+
+Contains Webots simulation environment files.
+
+| File | Purpose |
+|---|---|
+| `maze_world.wbt` | Main maze simulation world |
+| `.maze_world.wbproj` | Webots project configuration |
+
+Used for:
+- maze navigation testing
+- wall-following evaluation
+- obstacle avoidance testing
+- final demonstration
+
+---
+
+## `diagrams/`
+
+Contains all system design and logic diagrams for the robot.
+
+### Diagram Files
+
+- `fsm_state_diagram.mmd`  
+  Finite State Machine showing transitions between robot behaviours:
+  EXPLORE, WALL_FOLLOW, AVOID, RECOVERY, GOAL_REACHED.
+
+- `system_architecture.mmd`  
+  Overall system structure:
+  Sensors → FSM → Movement → Motors
+
+- `navigation_flowchart.mmd`  
+  Step-by-step decision-making logic of the robot during navigation.
+
+- `sensor_layout.mmd`  
+  Layout of robot sensors and their roles.
+
+- `wall_following_control.mmd`  
+  Right-wall following control logic using:
+  error = right - DESIRED_RIGHT
+
+---
+
+## `.gitignore`
+
+Excludes unnecessary files such as:
+- `__pycache__/`
+- `.pyc`
+- temporary IDE files
+
+---
+
+# Robot Architecture
+
+The system follows a modular robotics pipeline:
+
+```text
+Sensors → FSM → Movement → Motors
+```
+
+### Responsibilities
+
+| Module | Responsibility |
+|---|---|
+| Sensors | Reads distance sensors, encoders, and camera |
+| FSM | Decides robot behaviour |
+| Movement | Controls motor output with smoothing |
+| Motors | Executes physical movement in Webots |
+
+---
+
+# Navigation Strategy
+
+The robot uses a reactive navigation approach based on:
+- right-wall following
+- smooth arc turning
+- obstacle avoidance
+- encoder-based stuck detection
+- camera-based goal detection
+
+The final system prioritises:
+- stability
+- smooth movement
+- simplicity
+- robustness in maze environments
+
+---
+
+# Key Features
+
+- Autonomous maze navigation
+- Right-wall following
+- Smooth turning system
+- Obstacle avoidance
+- Encoder-based recovery
+- Camera-based goal detection
+- FSM-based control
+- Modular architecture
+
+---
+
+# Instructions for Running
+
+## Requirements
+- Webots Simulator
+- Python controller support
+
+## Run Steps
+1. Open Webots
+2. Load `maze_world.wbt`
+3. Set controller to:
+   ```
+   main_controller
+   ```
+4. Run simulation
+
+---
+
+# Instructions for Markers
+
+1. Open `maze_world.wbt`
+2. Run simulation
+3. Observe:
+   - navigation behaviour
+   - wall-following
+   - obstacle avoidance
+   - recovery system
+   - goal detection
+4. Review:
+   - source code
+   - FSM logic
+   - diagrams
+   - system design
+
+---
+
+# Notes
+
+- Fully compatible with Webots
+- All tuning parameters are in `config.py`
+- System prioritises stability over complex mapping
+- Designed for clear modular testing
+
+---
+
+# Acknowledgements
+
+Thanks to all team members for their contributions, especially improvements to wall-following stability and overall navigation performance.

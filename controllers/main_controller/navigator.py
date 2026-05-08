@@ -2,9 +2,7 @@ from movement import set_speed
 
 def navigate(left_motor, right_motor, state, sensor):
 
-    # -------------------------
     # HARD STATES
-    # -------------------------
     if state == "GOAL_REACHED":
         set_speed(left_motor, right_motor, 0, 0)
         return
@@ -17,48 +15,39 @@ def navigate(left_motor, right_motor, state, sensor):
         set_speed(left_motor, right_motor, 2.2, -2.2)
         return
 
-    # -------------------------
-    # EXPLORE (SLIDING WALL FOLLOW - STABLE VERSION)
-    # -------------------------
+    # LEFT WALL FOLLOWING - SIMPLE FIX
+    BASE = 3.0
+    TARGET = 80  # Adjust this value to change distance from wall
 
-    BASE = 2.5
-    TARGET = 140
-
-    # distance control (wall distance)
+    # Distance control
     dist_error = sensor["left"] - TARGET
-
     if abs(dist_error) < 5:
         dist_error = 0
+    dist_correction = 0.008 * dist_error
 
-    k_dist = 0.008
-    dist_correction = k_dist * dist_error
+    # ANGLE CONTROL - THE FIX (head sticky means turn RIGHT)
+    front_left = sensor["raw"][7]   # PS7 - front-left
+    back_left = sensor["raw"][4]    # PS4 - back-left
+    
+    # If front_left > back_left: head is closer -> need to turn RIGHT
+    # Turning RIGHT means left wheel faster than right wheel
+    angle_error = front_left - back_left
+    
+    # Strong angle correction (increase if still sticky)
+    angle_correction = 0.015 * angle_error  # Positive = turn RIGHT
 
-    # -------------------------
-    # ANGLE CONTROL (SAFE VERSION)
-    # -------------------------
-    # FIX: always use raw fields safely
-    angle_error = sensor["left_raw"] - sensor["right_raw"]
+    # Combine: when head sticky (positive angle_correction), turn RIGHT
+    # Right turn = left wheel faster
+    l = BASE + angle_correction - dist_correction
+    r = BASE - angle_correction + dist_correction
 
-    if abs(angle_error) < 5:
-        angle_error = 0
+    # Safety limits
+    l = max(0.5, min(4.0, l))
+    r = max(0.5, min(4.0, r))
 
-    k_angle = 0.01
-    angle_correction = k_angle * angle_error
-
-    # combine
-    turn = dist_correction + angle_correction
-
-    # -------------------------
-    # FRONT SAFETY (ROBUST)
-    # -------------------------
+    # Front obstacle avoidance
     if sensor["front"] > 180:
         set_speed(left_motor, right_motor, -1.5, 2.5)
         return
-
-    # -------------------------
-    # APPLY
-    # -------------------------
-    l = BASE - turn
-    r = BASE + turn
 
     set_speed(left_motor, right_motor, l, r)

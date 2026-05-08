@@ -19,7 +19,7 @@ __pycache__/
 *.tmp
 *.backup
 *~
-worlds/*.wbproj
+*.wbproj
 cache/
 
 # ==========================
