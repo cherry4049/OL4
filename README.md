@@ -51,11 +51,11 @@ OL4/
 │       └── sensors.py
 │
 ├── diagrams/
-│   ├── fsm_state_diagram.mmd
-│   ├── system_architecture.mmd
-│   ├── navigation_flowchart.mmd
+│   ├── fsm_state_diagram.md
+│   ├── system_architecture.md
+│   ├── navigation_flowchart.md
 │   ├── sensor_layout.mmd
-│   └── wall_following_control.mmd
+│   └── wall_following_control.md
 │
 ├── worlds/
 │   ├── .maze_world.wbproj
@@ -110,21 +110,21 @@ Contains all system design and logic diagrams for the robot.
 
 ### Diagram Files
 
-- `fsm_state_diagram.mmd`  
+- `fsm_state_diagram.md`  
   Finite State Machine showing transitions between robot behaviours:
   EXPLORE, WALL_FOLLOW, AVOID, RECOVERY, GOAL_REACHED.
 
-- `system_architecture.mmd`  
+- `system_architecture.md`  
   Overall system structure:
   Sensors → FSM → Movement → Motors
 
-- `navigation_flowchart.mmd`  
+- `navigation_flowchart.md`  
   Step-by-step decision-making logic of the robot during navigation.
 
-- `sensor_layout.mmd`  
+- `sensor_layout.md`  
   Layout of robot sensors and their roles.
 
-- `wall_following_control.mmd`  
+- `wall_following_control.md`  
   Right-wall following control logic using:
   error = right - DESIRED_RIGHT
 
@@ -139,22 +139,30 @@ Excludes unnecessary files such as:
 
 ---
 
-# Robot Architecture
+# System Architecture
 
-The system follows a modular robotics pipeline:
+The system follows a modular Sense → Process → Decide → Act architecture:
 
 ```text
-Sensors → FSM → Movement → Motors
+Distance Sensors / Encoders / Camera
+                ↓
+           Sensor Processing
+                ↓
+         Finite State Machine
+                ↓
+          Movement Controller
+                ↓
+             Wheel Motors
 ```
 
 ### Responsibilities
 
 | Module | Responsibility |
 |---|---|
-| Sensors | Reads distance sensors, encoders, and camera |
-| FSM | Decides robot behaviour |
-| Movement | Controls motor output with smoothing |
-| Motors | Executes physical movement in Webots |
+| Sensors | Read and process sensor inputs |
+| FSM | Determine navigation behaviour |
+| Movement | Execute motor commands |
+| Motors | Apply movement inside Webots |
 
 ---
 
@@ -162,7 +170,7 @@ Sensors → FSM → Movement → Motors
 
 The robot uses a reactive navigation approach based on:
 - right-wall following
-- smooth arc turning
+- sensor-difference error control
 - obstacle avoidance
 - encoder-based stuck detection
 - camera-based goal detection
@@ -178,13 +186,13 @@ The final system prioritises:
 # Key Features
 
 - Autonomous maze navigation
-- Right-wall following
-- Smooth turning system
+- FSM-based behaviour control
+- Continuous wall-following correction
 - Obstacle avoidance
-- Encoder-based recovery
+- Encoder-based recovery behaviour
 - Camera-based goal detection
-- FSM-based control
-- Modular architecture
+- Modular robotics architecture
+- Real-time sensor processing
 
 ---
 
@@ -231,6 +239,13 @@ The final system prioritises:
 - Designed for clear modular testing
 
 ---
+
+# References
+
+- Arkin, R. C. (1998). Behavior-based robotics. MIT Press.
+- Corke, P. (2011). Robotics, vision and control: Fundamental algorithms in MATLAB. Springer. https://doi.org/10.1007/978-3-642-20144-8
+- Michel, O. (2004). Webots™: Professional mobile robot simulation. International Journal of Advanced Robotic Systems, 1(1). https://doi.org/10.5772/5618
+- Siegwart, R., Nourbakhsh, I. R., & Scaramuzza, D. (2011). Introduction to autonomous mobile robots (2nd ed.). MIT Press. https://mitpress.mit.edu/9780262015356/introduction-to-autonomous-mobile-robots/
 
 # Acknowledgements
 
