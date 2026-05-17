@@ -9,8 +9,8 @@ B -- No --> D[Compute Error]
 D --> E{Error > +Limit?}
 D --> F{Error < -Limit?}
 
-E -- Yes --> G[Sligh Left]
-F -- Yes --> H[Sligh Right]
+E -- Yes --> G[Slight Left]
+F -- Yes --> H[Slight Right]
 E -- No --> I{In Range?}
 
 I -- Yes --> J[Move Forward]
