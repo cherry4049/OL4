@@ -51,10 +51,10 @@ OL4/
 │       └── sensors.py
 │
 ├── diagrams/
-│   ├── fsm_state_diagram.md
 │   ├── system_architecture.md
-│   ├── navigation_flowchart.md
-│   ├── sensor_layout.mmd
+│   ├── fsm_state_diagram.md
+│   ├── sensor_layout.md
+│   ├── navigation_flowchart.mmd
 │   └── wall_following_control.md
 │
 ├── worlds/
@@ -62,6 +62,7 @@ OL4/
 │   └── maze_world.wbt
 │
 ├── .gitignore
+├── demo_video.mp4
 └── README.md
 ```
 
@@ -110,19 +111,19 @@ Contains all system design and logic diagrams for the robot.
 
 ### Diagram Files
 
-- `fsm_state_diagram.md`  
-  Finite State Machine showing transitions between robot behaviours:
-  EXPLORE, WALL_FOLLOW, AVOID, RECOVERY, GOAL_REACHED.
-
 - `system_architecture.md`  
   Overall system structure:
   Sensors → FSM → Movement → Motors
 
-- `navigation_flowchart.md`  
-  Step-by-step decision-making logic of the robot during navigation.
+- `fsm_state_diagram.md`  
+  Finite State Machine showing transitions between robot behaviours:
+  EXPLORE, WALL_FOLLOW, AVOID, RECOVERY, GOAL_REACHED.
 
 - `sensor_layout.md`  
   Layout of robot sensors and their roles.
+
+- `navigation_flowchart.md`  
+  Step-by-step decision-making logic of the robot during navigation.
 
 - `wall_following_control.md`  
   Right-wall following control logic using:
@@ -136,6 +137,19 @@ Excludes unnecessary files such as:
 - `__pycache__/`
 - `.pyc`
 - temporary IDE files
+
+---
+
+## `demo_video.mp4`
+
+Contains the demonstration video for the autonomous maze-solving robot project, showcasing:
+- autonomous maze navigation
+- wall-following behaviour
+- obstacle avoidance
+- FSM-based control system
+- camera-based goal detection
+
+The video is compressed for GitHub upload while maintaining readable simulation output and robot behaviour visibility.
 
 ---
 
